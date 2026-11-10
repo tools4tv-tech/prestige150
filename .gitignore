@@ -15,3 +15,7 @@ node_modules
 .DS_Store
 # Editor tooling
 .kilo/
+
+# Next.js static export output
+out/
+*.tsbuildinfo
