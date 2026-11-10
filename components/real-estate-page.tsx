@@ -19,29 +19,31 @@ const CONTACT_INFO = {
 const WHATSAPP_MESSAGE = "Hi, I'm interested in the project. Please share the latest project details and pricing."
 const openEnquiry = (setInterest: (interest: string) => void, setOpen: (open: boolean) => void, interest = 'Not Sure') => { setInterest(interest); setOpen(true) }
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
 const images = {
-  hero: '/uploads/hero%20Image.webp',
-  home: '/uploads/residence%20preview.webp',
-  pool: '/uploads/Swimming-Wellness-Centre.webp',
-  gym: '/uploads/Gymnasium.webp',
-  overview: '/uploads/project%20overview.webp',
-  second: '/uploads/second%20image.webp',
-  developer: '/uploads/clubhouse-pool-view.webp',
-  clubhouse: '/uploads/Clubhouse.webp',
-  cricket: '/uploads/Cricket-Academy.webp',
-  greenSpaces: '/uploads/Extensive-Landscaped-Green-Spaces.webp',
-  sportsHall: '/uploads/Indoor-Multipurpose-Sports-Hall.webp',
-  joggingTrack: '/uploads/Jogging-Track.webp',
-  playfield: '/uploads/Multipurpose-Playfield.webp',
-  clubhousePool: '/uploads/clubhouse-pool-view.webp',
-  fitness: '/uploads/fitness-centre.jpg',
-  yoga: '/uploads/yoga-meditation-lawn.jpg',
-  leisurePool: '/uploads/leisure-pool.jpg',
-  sportsCourts: '/uploads/sports-courts.jpg',
-  callIcon: '/uploads/icons8-call.gif',
-  whatsappIcon: '/uploads/icons8-whatsapp.gif',
-  floorPlan3Bhk: '/uploads/3BHK%20floor%20plan.png',
-  floorPlan4Bhk: '/uploads/4BHK%20floor%20plan.png',
+  hero: `${BASE_PATH}/uploads/hero%20Image.webp`,
+  home: `${BASE_PATH}/uploads/residence%20preview.webp`,
+  pool: `${BASE_PATH}/uploads/Swimming-Wellness-Centre.webp`,
+  gym: `${BASE_PATH}/uploads/Gymnasium.webp`,
+  overview: `${BASE_PATH}/uploads/project%20overview.webp`,
+  second: `${BASE_PATH}/uploads/second%20image.webp`,
+  developer: `${BASE_PATH}/uploads/clubhouse-pool-view.webp`,
+  clubhouse: `${BASE_PATH}/uploads/Clubhouse.webp`,
+  cricket: `${BASE_PATH}/uploads/Cricket-Academy.webp`,
+  greenSpaces: `${BASE_PATH}/uploads/Extensive-Landscaped-Green-Spaces.webp`,
+  sportsHall: `${BASE_PATH}/uploads/Indoor-Multipurpose-Sports-Hall.webp`,
+  joggingTrack: `${BASE_PATH}/uploads/Jogging-Track.webp`,
+  playfield: `${BASE_PATH}/uploads/Multipurpose-Playfield.webp`,
+  clubhousePool: `${BASE_PATH}/uploads/clubhouse-pool-view.webp`,
+  fitness: `${BASE_PATH}/uploads/fitness-centre.jpg`,
+  yoga: `${BASE_PATH}/uploads/yoga-meditation-lawn.jpg`,
+  leisurePool: `${BASE_PATH}/uploads/leisure-pool.jpg`,
+  sportsCourts: `${BASE_PATH}/uploads/sports-courts.jpg`,
+  callIcon: `${BASE_PATH}/uploads/icons8-call.gif`,
+  whatsappIcon: `${BASE_PATH}/uploads/icons8-whatsapp.gif`,
+  floorPlan3Bhk: `${BASE_PATH}/uploads/3BHK%20floor%20plan.png`,
+  floorPlan4Bhk: `${BASE_PATH}/uploads/4BHK%20floor%20plan.png`,
 }
 
 const connectivity = [
@@ -299,7 +301,7 @@ export function RealEstatePage() {
 
       <section className="faq section-pad" id="faqs"><div><div className="section-kicker">Good to know</div><h2>Your questions,<br /><span>answered.</span></h2><a className="inline-link" href="#" onClick={(event) => { event.preventDefault(); openEnquiry(setEnquiryInterest, setEnquiryOpen) }}>Talk to a property advisor <ArrowRight /></a></div><div className="faq-list">{faqs.map((faq, i) => <div className="faq-item" key={faq.q}><button onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i}><span>{faq.q}</span><ChevronDown className={openFaq === i ? 'rotate' : ''} /></button>{openFaq === i && <p>{faq.a}</p>}</div>)}</div></section>
 
-      <section className="final-cta" id="contact"><div className="final-cta-copy"><div className="hero-badge">PROJECT INFORMATION</div><h2>READY TO KNOW MORE ABOUT<br /><span>PRESTIGE SECTOR 150?</span></h2><p>Get the latest pricing, floor plans, availability and project information from our property team.</p><div className="final-cta-actions"><button className="button button-accent" onClick={() => { setEnquiryInterest('Not Sure'); setEnquiryOpen(true) }}>Get Price Details <ArrowRight /></button><button className="button button-white" onClick={() => { setEnquiryInterest('Site Visit'); setEnquiryOpen(true) }}>Schedule Site Visit</button>{<a className="whatsapp-link" href={`https://wa.me/${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`}>WhatsApp Us</a>}</div><div className="final-trust"><span><Check /> Project Details</span><span><Check /> Floor Plans</span><span><Check /> Pricing Information</span><span><Check /> Site Visit Assistance</span></div></div><EnquiryCard interest={enquiryInterest} onSubmit={() => undefined} /></section>
+      <section className="final-cta" id="contact" style={{ backgroundImage: `linear-gradient(90deg,#082226f2,#082226d9), url(${images.overview})`, backgroundSize: 'cover', backgroundPosition: 'center' }}><div className="final-cta-copy"><div className="hero-badge">PROJECT INFORMATION</div><h2>READY TO KNOW MORE ABOUT<br /><span>PRESTIGE SECTOR 150?</span></h2><p>Get the latest pricing, floor plans, availability and project information from our property team.</p><div className="final-cta-actions"><button className="button button-accent" onClick={() => { setEnquiryInterest('Not Sure'); setEnquiryOpen(true) }}>Get Price Details <ArrowRight /></button><button className="button button-white" onClick={() => { setEnquiryInterest('Site Visit'); setEnquiryOpen(true) }}>Schedule Site Visit</button>{<a className="whatsapp-link" href={`https://wa.me/${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`}>WhatsApp Us</a>}</div><div className="final-trust"><span><Check /> Project Details</span><span><Check /> Floor Plans</span><span><Check /> Pricing Information</span><span><Check /> Site Visit Assistance</span></div></div><EnquiryCard interest={enquiryInterest} onSubmit={() => undefined} /></section>
 
       <footer className="footer"><div><a className="brand" href="#top"><span>PRESTIGE</span><small>SECTOR 150 · NOIDA</small></a><p>Homes that bring your family closer.</p></div><div className="footer-links"><a href="#overview">Overview</a><a href="#homes">Homes</a><a href="#amenities">Amenities</a><a href="#location">Location</a><a href="#" onClick={(event) => { event.preventDefault(); openEnquiry(setEnquiryInterest, setEnquiryOpen) }}>Enquire</a></div><FooterDisclaimer /><div className="footer-bottom">© 2026 Prestige Sector 150 · Pre-launch project · UP RERA registration under process · *Terms apply</div></footer>
       <div className="floating-contact-actions" aria-label="Project contact actions"><a className="floating-contact-call" href={`tel:${CONTACT_INFO.phone}`} aria-label="Call project team"><img src={images.callIcon} alt="" /></a><a className="floating-contact-whatsapp" href={`https://wa.me/${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`} aria-label="Contact project team on WhatsApp" target="_blank" rel="noreferrer"><img src={images.whatsappIcon} alt="" /></a></div>

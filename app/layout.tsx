@@ -9,23 +9,6 @@ const display = Playfair_Display({ subsets: ['latin'], weight: ['500', '600', '7
 export const metadata: Metadata = {
   title: 'Prestige Sector 150 | Elevated Living in Noida',
   description: 'Discover premium 2, 3 & 4 BHK residences designed around space, comfort and contemporary urban living in Sector 150, Noida.',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
 }
 
 export const viewport: Viewport = {
@@ -45,7 +28,8 @@ export default function RootLayout({
     <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <body className="antialiased">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {/* Vercel Analytics only works when hosted on Vercel */}
+        {process.env.VERCEL === '1' && <Analytics />}
       </body>
     </html>
   )
