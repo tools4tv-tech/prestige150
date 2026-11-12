@@ -127,7 +127,7 @@
   // Gallery lightbox
   var galleryTiles = $$('.gallery-tile')
   var galleryItems = galleryTiles.map(function (t) {
-    return { image: $('img', t).getAttribute('src'), title: $('strong', t).textContent, category: $('small', t).textContent }
+    return { image: $('img', t).getAttribute('src'), title: $('strong', t).textContent }
   })
   function pad(n) { return String(n).padStart(2, '0') }
   function renderLightbox(panel, index) {
@@ -135,13 +135,12 @@
     var img = $('img', panel)
     img.src = item.image
     img.alt = item.title
-    $('.gallery-lightbox-meta span', panel).textContent = item.category
     $('.gallery-lightbox-meta strong', panel).textContent = item.title
     $('.gallery-lightbox-meta small', panel).textContent = pad(index + 1) + ' / ' + pad(galleryItems.length)
   }
   function openGallery(index) {
     var current = index
-    var panel = openModal('<div class="gallery-lightbox-inner" role="dialog" aria-modal="true" aria-label="Project gallery"><button class="modal-close" aria-label="Close gallery">' + ICON.X + '</button><img src="" alt=""><div class="gallery-lightbox-meta"><div><span></span><strong></strong></div><small></small></div><button class="gallery-arrow gallery-prev" aria-label="Previous image">' + ICON.ChevronLeft + '</button><button class="gallery-arrow gallery-next" aria-label="Next image">' + ICON.ChevronRight + '</button></div>', 'gallery-lightbox')
+    var panel = openModal('<div class="gallery-lightbox-inner" role="dialog" aria-modal="true" aria-label="Project gallery"><button class="modal-close" aria-label="Close gallery">' + ICON.X + '</button><img src="" alt=""><div class="gallery-lightbox-meta"><div><strong></strong></div><small></small></div><button class="gallery-arrow gallery-prev" aria-label="Previous image">' + ICON.ChevronLeft + '</button><button class="gallery-arrow gallery-next" aria-label="Next image">' + ICON.ChevronRight + '</button></div>', 'gallery-lightbox')
     renderLightbox(panel, current)
     $('.gallery-prev', panel).addEventListener('click', function () { current = (current - 1 + galleryItems.length) % galleryItems.length; renderLightbox(panel, current) })
     $('.gallery-next', panel).addEventListener('click', function () { current = (current + 1) % galleryItems.length; renderLightbox(panel, current) })
@@ -205,13 +204,13 @@
   })
 
   // Configuration cards
-  $$('.configuration-card').forEach(function (card) {
+  $$('.pc-card').forEach(function (card) {
     var title = $('h3', card).textContent
     $('.configuration-actions .button-accent', card).addEventListener('click', function () { openEnquiry(title) })
     $('.configuration-actions .button-outline', card).addEventListener('click', function () { openFloorPlan(title) })
   })
   // Price comparison rows
-  $$('.comparison-row:not(.comparison-labels)').forEach(function (row) {
+  $$('.pc-row:not(.pc-row-labels)').forEach(function (row) {
     var b = $('button', row)
     if (b) b.addEventListener('click', function () { openEnquiry($('strong', row).textContent) })
   })
@@ -228,21 +227,84 @@
   var mpButton = $('.masterplan-card .button-outline')
   if (mpButton) mpButton.addEventListener('click', openMasterplan)
 
-  // Gallery filter + tiles
-  $$('.gallery-tabs button').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var filter = tab.textContent.trim()
-      $$('.gallery-tabs button').forEach(function (t) {
-        var active = t === tab
-        t.classList.toggle('active', active)
-        t.setAttribute('aria-selected', String(active))
-      })
-      galleryTiles.forEach(function (tile, i) {
-        tile.hidden = !(filter === 'ALL' || galleryItems[i].category === filter)
-      })
-    })
-  })
+  // Gallery tiles open the lightbox
   galleryTiles.forEach(function (tile, i) { tile.addEventListener('click', function () { openGallery(i) }) })
+
+  // Gallery slider: swipe / arrows / progress, gentle autoplay that pauses on interaction
+  var track = $('.gallery-slider .gallery-grid')
+  if (track) {
+    var prevBtn = $('.gallery-slider-prev')
+    var nextBtn = $('.gallery-slider-next')
+    var bar = $('.gallery-slider-progress span')
+    var count = $('.gallery-slider-count')
+    var visibleTiles = function () { return galleryTiles.filter(function (t) { return !t.hidden }) }
+    var gapPx = function () { return parseFloat(getComputedStyle(track).columnGap) || 0 }
+    var step = function () { var t = visibleTiles()[0]; return t ? t.offsetWidth + gapPx() : track.clientWidth }
+    var perView = function () { return Math.max(1, Math.round((track.clientWidth + gapPx()) / step())) }
+    var lastIndex = function () { return Math.max(0, visibleTiles().length - perView()) }
+    var currentIndex = function () { return Math.min(lastIndex(), Math.round(track.scrollLeft / step())) }
+    var maxScroll = function () { return track.scrollWidth - track.clientWidth }
+    var updateSlider = function () {
+      var total = visibleTiles().length
+      var i = currentIndex()
+      var pv = Math.min(perView(), total)
+      var atEnd = track.scrollLeft >= maxScroll() - 2
+      var first = atEnd ? Math.max(1, total - pv + 1) : i + 1
+      var last = Math.min(total, first + pv - 1)
+      count.textContent = pad(first) + (last > first ? '–' + pad(last) : '') + ' / ' + pad(total)
+      bar.style.width = (total ? (last / total) * 100 : 100) + '%'
+      prevBtn.disabled = track.scrollLeft <= 2
+    }
+    var goTo = function (i) {
+      var tiles = visibleTiles()
+      if (!tiles.length) return
+      i = Math.max(0, Math.min(lastIndex(), i))
+      track.scrollTo({ left: tiles[i].offsetLeft - tiles[0].offsetLeft, behavior: reduceMotion() ? 'auto' : 'smooth' })
+    }
+    var go = function (dir) {
+      var atEnd = track.scrollLeft >= maxScroll() - 2
+      if (dir > 0 && atEnd) goTo(0)
+      else goTo(currentIndex() + dir)
+    }
+    prevBtn.addEventListener('click', function () { go(-1); restartAuto() })
+    nextBtn.addEventListener('click', function () { go(1); restartAuto() })
+    track.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); restartAuto() }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); restartAuto() }
+    })
+    track.addEventListener('scroll', updateSlider, { passive: true })
+    window.addEventListener('resize', updateSlider)
+    var autoTimer = null
+    var paused = false
+    var restartAuto = function () {
+      clearInterval(autoTimer)
+      if (reduceMotion()) return
+      autoTimer = setInterval(function () { if (!paused && !document.hidden && !overlay) go(1) }, 4500)
+    }
+    var slider = $('.gallery-slider')
+    slider.addEventListener('mouseenter', function () { paused = true })
+    slider.addEventListener('mouseleave', function () { paused = false })
+    slider.addEventListener('focusin', function () { paused = true })
+    slider.addEventListener('focusout', function () { paused = false })
+    track.addEventListener('touchstart', function () { paused = true; clearTimeout(slider._resume) }, { passive: true })
+    track.addEventListener('touchend', function () { slider._resume = setTimeout(function () { paused = false }, 6000) }, { passive: true })
+    updateSlider()
+    restartAuto()
+  }
+
+  // Single-image viewer: other content images open full-size with a close button
+  function openImage(src, title) {
+    var panel = openModal('<div class="gallery-lightbox-inner" role="dialog" aria-modal="true" aria-label="Image viewer"><button class="modal-close" aria-label="Close image">' + ICON.X + '</button><img src="' + esc(src) + '" alt="' + esc(title) + '">' + (title ? '<div class="gallery-lightbox-meta"><div><strong>' + esc(title) + '</strong></div></div>' : '') + '</div>', 'gallery-lightbox')
+    return panel
+  }
+  $$('.overview-card img').forEach(function (img) {
+    img.classList.add('is-zoomable')
+    img.setAttribute('tabindex', '0')
+    img.setAttribute('role', 'button')
+    var open = function () { openImage(img.getAttribute('src'), img.getAttribute('alt')) }
+    img.addEventListener('click', open)
+    img.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open() } })
+  })
 
   // ---------- FAQ accordion (one open at a time) ----------
   var faqItems = $$('.faq-item')
@@ -308,8 +370,8 @@
     revealTargets.forEach(function (items) {
       gsap.to(items, { autoAlpha: 1, y: 0, duration: 0.75, ease: 'power2.out', stagger: 0.06, scrollTrigger: { trigger: items[0].closest('.section-pad'), start: 'top 80%', once: true } })
     })
-    $$('.configuration-card, .floor-plan-card, .amenity-gallery > *, .connectivity-card, .location-highlight, .gallery-tile, .trust-points > div, .contact-details > div').forEach(function (group) {
-      fadeUp(group, { scale: group.matches('.floor-plan-card, .gallery-tile') ? 0.97 : 1, duration: 0.65, scrollTrigger: { trigger: group.parentElement, start: 'top 82%', once: true }, stagger: 0.1 })
+    $$('.pc-card, .pc-table, .floor-plan-card, .amenity-gallery > *, .connectivity-card, .location-highlight, .gallery-slider, .trust-points > div, .contact-details > div').forEach(function (group) {
+      fadeUp(group, { scale: group.matches('.floor-plan-card') ? 0.97 : 1, duration: 0.65, scrollTrigger: { trigger: group.parentElement, start: 'top 82%', once: true }, stagger: 0.1 })
     })
     fadeUp('.developer-image-wrap', { x: -35, duration: 0.8, scrollTrigger: { trigger: '.developer-trust', start: 'top 78%', once: true } })
     fadeUp('.developer-copy', { x: 35, duration: 0.8, scrollTrigger: { trigger: '.developer-trust', start: 'top 78%', once: true } })
@@ -319,17 +381,31 @@
     fadeIn('.site-nav', { y: -16, duration: 0.5 })
   }
   gsap.to('.scroll-progress', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: true } })
-
-  // ---------- Custom cursor (desktop, fine pointer) ----------
-  var dot = $('.cursor-dot')
-  var ring = $('.cursor-ring')
-  if (mq('(pointer: fine) and (min-width: 801px)') && !noMotion && dot && ring) {
-    var moveX = gsap.quickTo(dot, 'x', { duration: 0.12, ease: 'power2.out' })
-    var moveY = gsap.quickTo(dot, 'y', { duration: 0.12, ease: 'power2.out' })
-    var ringX = gsap.quickTo(ring, 'x', { duration: 0.28, ease: 'power2.out' })
-    var ringY = gsap.quickTo(ring, 'y', { duration: 0.28, ease: 'power2.out' })
-    window.addEventListener('pointermove', function (e) { moveX(e.clientX); moveY(e.clientY); ringX(e.clientX); ringY(e.clientY) }, { passive: true })
-    window.addEventListener('pointerover', function (e) { if (e.target.closest('a, button')) ring.classList.add('is-hovering') }, { passive: true })
-    window.addEventListener('pointerout', function (e) { if (e.target.closest('a, button')) ring.classList.remove('is-hovering') }, { passive: true })
-  }
 })()
+
+// Hero slider: crossfade between hero images every 5s, with clickable dots.
+;(function () {
+  var slides = document.querySelectorAll('.hero-slide');
+  var dots = document.querySelectorAll('.hero-dots button');
+  if (slides.length < 2) return;
+  var current = 0;
+  var timer;
+  function show(i) {
+    slides[current].classList.remove('is-active');
+    dots[current] && dots[current].removeAttribute('aria-current');
+    current = (i + slides.length) % slides.length;
+    slides[current].classList.add('is-active');
+    dots[current] && dots[current].setAttribute('aria-current', 'true');
+  }
+  function start() {
+    clearInterval(timer);
+    timer = setInterval(function () { show(current + 1); }, 5000);
+  }
+  dots.forEach(function (dot, i) {
+    dot.addEventListener('click', function () { show(i); start(); });
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) clearInterval(timer); else start();
+  });
+  start();
+})();
