@@ -3,7 +3,7 @@
   'use strict'
 
   // ---------- Config ----------
-  var CONTACT = { whatsapp: '+918010009002' }
+  var CONTACT = { whatsapp: '+917417412100' }
   var WHATSAPP_MESSAGE = "Hi, I'm interested in the project. Please share the latest project details and pricing."
   var WHATSAPP_URL = 'https://wa.me/' + CONTACT.whatsapp + '?text=' + encodeURIComponent(WHATSAPP_MESSAGE)
 
