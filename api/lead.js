@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
     // 5. Validate form data
     // ------------------------------------------
 
-    if (name.length < 2 || name.length > 100) {
+    if (name.length > 100) {
       return res.status(400).json({
         success: false,
         message: "Please enter a valid name."
@@ -121,7 +121,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (!interest || interest.length > 100) {
+    if (interest.length > 100) {
       return res.status(400).json({
         success: false,
         message: "Please select your configuration."
@@ -134,7 +134,7 @@ module.exports = async function handler(req, res) {
 
     const noteParts = [
       "Project: Prestige Sector 150",
-      "Interested In: " + interest
+      "Interested In: " + (interest || "Not specified")
     ];
 
     const trackingFields = [

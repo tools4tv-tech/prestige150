@@ -183,10 +183,6 @@ function setupLeadCard(card, interest) {
     var email = String(data.get('email') || '').trim();
     var selectedInterest = String(data.get('interest') || '').trim();
 
-    if (!name || name.length < 2) {
-      errors.name = 'Please enter your name.';
-    }
-
     if (!normalizedPhone) {
       errors.phone = 'Please enter your phone number.';
     }
@@ -196,10 +192,6 @@ function setupLeadCard(card, interest) {
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
       errors.email = 'Please enter a valid email address.';
-    }
-
-    if (!selectedInterest) {
-      errors.interest = 'Please select a configuration.';
     }
 
     // Remove previous errors.
