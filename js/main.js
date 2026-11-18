@@ -179,21 +179,16 @@ function setupLeadCard(card, interest) {
     var errors = {};
 
     var name = String(data.get('name') || '').trim();
-    var phone = String(data.get('phone') || '').replace(/[\s-]/g, '');
+    var normalizedPhone = String(data.get('phone') || '').trim();
     var email = String(data.get('email') || '').trim();
     var selectedInterest = String(data.get('interest') || '').trim();
-
-    var normalizedPhone = phone.replace(/\D/g, '');
-    if (normalizedPhone.length === 12 && normalizedPhone.startsWith('91')) {
-      normalizedPhone = normalizedPhone.slice(2);
-    }
 
     if (!name || name.length < 2) {
       errors.name = 'Please enter your name.';
     }
 
-    if (!/^[6-9]\d{9}$/.test(normalizedPhone)) {
-      errors.phone = 'Please enter a valid Indian phone number.';
+    if (!normalizedPhone) {
+      errors.phone = 'Please enter your phone number.';
     }
 
     if (

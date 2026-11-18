@@ -84,21 +84,11 @@ module.exports = async function handler(req, res) {
 
     const name = String(body.name || "").trim();
 
-    const rawPhone = String(body.phone || "")
-      .replace(/\D/g, "");
+    const phone = String(body.phone || "").trim();
 
     const email = String(body.email || "").trim();
 
     const interest = String(body.interest || "").trim();
-
-    // Normalize Indian mobile numbers.
-    let phone = rawPhone;
-
-    if (phone.length === 12 && phone.startsWith("91")) {
-      phone = phone.slice(2);
-    } else if (phone.length === 11 && phone.startsWith("0")) {
-      phone = phone.slice(1);
-    }
 
     // ------------------------------------------
     // 5. Validate form data
@@ -111,10 +101,10 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (!/^[6-9]\d{9}$/.test(phone)) {
+    if (!phone || phone.length > 30) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid Indian mobile number."
+        message: "Please enter your phone number."
       });
     }
 
