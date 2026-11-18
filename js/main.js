@@ -153,38 +153,169 @@
   })
 
   // ---------- Enquiry form ----------
-  function setupLeadCard(card, interest) {
-    var form = $('form', card)
-    var select = $('select[name="interest"]', form)
-    if (interest !== undefined) {
-      select.value = interest
-      if (select.value !== interest) select.value = '' // unmatched -> "Select an option"
+  
+// ---------- Enquiry form with Sell.Do CRM ----------
+
+function setupLeadCard(card, interest) {
+  if (!card) return;
+
+  var form = $('form', card);
+  var select = $('select[name="interest"]', form);
+
+  if (interest !== undefined) {
+    select.value = interest;
+
+    if (select.value !== interest) {
+      select.value = '';
     }
-    form.addEventListener('submit', function (e) {
-      e.preventDefault()
-      var data = new FormData(form)
-      var errors = {}
-      var name = String(data.get('name') || '').trim()
-      var phone = String(data.get('phone') || '').replace(/[\s-]/g, '')
-      if (!name) errors.name = 'Please enter your name.'
-      if (!/^(\+?91)?[6-9]\d{9}$/.test(phone)) errors.phone = 'Please enter a valid Indian phone number.'
-      if (!data.get('interest')) errors.interest = 'Please select a configuration.'
-
-      $$('.field-error', form).forEach(function (el) { el.remove() })
-      ;['name', 'phone', 'interest'].forEach(function (field) {
-        var input = form.elements[field]
-        var label = input.closest('label')
-        if (field !== 'interest') input.setAttribute('aria-invalid', String(Boolean(errors[field])))
-        if (errors[field]) label.insertAdjacentHTML('afterend', '<small class="field-error">' + errors[field] + '</small>')
-      })
-      if (Object.keys(errors).length) return
-
-      var success = document.createElement('div')
-      success.className = 'lead-success'
-      success.innerHTML = ICON.Check + '<span class="section-kicker">ENQUIRY RECEIVED</span><h3>Thank you</h3><p>Your enquiry has been received. A property advisor will contact you with the requested project information.</p><div class="lead-success-actions"><a class="button button-accent" href="' + esc(WHATSAPP_URL) + '">WhatsApp Us</a><a class="button button-outline" href="#top">Back to Website</a></div>'
-      card.replaceWith(success)
-    })
   }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    if (form.dataset.submitting === 'true') return;
+
+    var data = new FormData(form);
+    var errors = {};
+
+    var name = String(data.get('name') || '').trim();
+    var phone = String(data.get('phone') || '').replace(/[\s-]/g, '');
+    var email = String(data.get('email') || '').trim();
+    var selectedInterest = String(data.get('interest') || '').trim();
+
+    var normalizedPhone = phone.replace(/\D/g, '');
+    if (normalizedPhone.length === 12 && normalizedPhone.startsWith('91')) {
+      normalizedPhone = normalizedPhone.slice(2);
+    }
+
+    if (!name || name.length < 2) {
+      errors.name = 'Please enter your name.';
+    }
+
+    if (!/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      errors.phone = 'Please enter a valid Indian phone number.';
+    }
+
+    if (
+      email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      errors.email = 'Please enter a valid email address.';
+    }
+
+    if (!selectedInterest) {
+      errors.interest = 'Please select a configuration.';
+    }
+
+    // Remove previous errors.
+    $$('.field-error', form).forEach(function (el) {
+      el.remove();
+    });
+
+    ['name', 'phone', 'email', 'interest'].forEach(function (field) {
+      var input = form.elements[field];
+      var label = input.closest('label');
+
+      input.setAttribute(
+        'aria-invalid',
+        String(Boolean(errors[field]))
+      );
+
+      if (errors[field]) {
+        var error = document.createElement('small');
+        error.className = 'field-error';
+        error.textContent = errors[field];
+        label.insertAdjacentElement('afterend', error);
+      }
+    });
+
+    if (Object.keys(errors).length) return;
+
+    var submitButton = $('button[type="submit"]', form);
+    var originalButtonHTML = submitButton.innerHTML;
+
+    // Prevent duplicate submissions.
+    form.dataset.submitting = 'true';
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting Enquiry...';
+
+    // Collect UTM tracking information.
+    var query = new URLSearchParams(window.location.search);
+
+    var leadPayload = {
+      name: name,
+      phone: normalizedPhone,
+      email: email,
+      interest: selectedInterest,
+
+      utm_source: query.get('utm_source') || '',
+      utm_medium: query.get('utm_medium') || '',
+      utm_campaign: query.get('utm_campaign') || '',
+      utm_term: query.get('utm_term') || '',
+      utm_content: query.get('utm_content') || '',
+
+      page_url: window.location.href.split('#')[0]
+    };
+
+    try {
+      var response = await fetch('/api/lead', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(leadPayload)
+      });
+
+      var result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Unable to submit your enquiry.'
+        );
+      }
+
+      // Show success only after API confirms submission.
+      var success = document.createElement('div');
+      success.className = 'lead-success';
+
+      success.innerHTML =
+        ICON.Check +
+        '<span class="section-kicker">ENQUIRY RECEIVED</span>' +
+        '<h3>Thank you</h3>' +
+        '<p>Your enquiry has been received. A property advisor will contact you with the requested project information.</p>' +
+        '<div class="lead-success-actions">' +
+        '<a class="button button-accent" href="' +
+        esc(WHATSAPP_URL) +
+        '">WhatsApp Us</a>' +
+        '<a class="button button-outline" href="#top">Back to Website</a>' +
+        '</div>';
+
+      card.replaceWith(success);
+
+    } catch (error) {
+      console.error('Sell.Do submission failed:', error);
+
+      var errorMessage = form.querySelector('.lead-api-error');
+
+      if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.className = 'lead-api-error';
+        errorMessage.setAttribute('role', 'alert');
+        form.appendChild(errorMessage);
+      }
+
+      errorMessage.textContent =
+        error.message ||
+        'Something went wrong. Please try again.';
+
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalButtonHTML;
+      form.dataset.submitting = 'false';
+    }
+  });
+}
+
   setupLeadCard($('.final-cta .lead-card'))
 
   // ---------- Buttons that open the enquiry form ----------
