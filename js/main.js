@@ -288,10 +288,20 @@ function setupLeadCard(card, interest) {
         '<a class="button button-accent" href="' +
         esc(WHATSAPP_URL) +
         '">WhatsApp Us</a>' +
-        '<a class="button button-outline" href="#top">Back to Website</a>' +
+        '<button type="button" class="button button-outline lead-back">Back to Website</button>' +
         '</div>';
 
       card.replaceWith(success);
+
+      $('.lead-back', success).addEventListener('click', function () {
+        if (overlay && overlay.contains(success)) {
+          // Inside the enquiry popup: just close it.
+          closeModal();
+        } else {
+          // Inline form at the bottom of the page: return to the top.
+          window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+        }
+      });
 
     } catch (error) {
       console.error('Sell.Do submission failed:', error);
