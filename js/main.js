@@ -283,7 +283,8 @@ function setupLeadCard(card, interest) {
   });
 }
 
-  setupLeadCard($('.final-cta .lead-card'))
+  // Always-open forms (hero, pricing band, site-visit band, footer CTA); data-interest tags the lead source.
+  $$('.lead-card').forEach(function (c) { setupLeadCard(c, c.dataset.interest) })
 
   // ---------- Buttons that open the enquiry form ----------
   // Hero buttons, inline links and footer "Enquire" reset the interest to "Not Sure"
@@ -473,7 +474,7 @@ function setupLeadCard(card, interest) {
     })
     fadeUp('.developer-image-wrap', { x: -35, duration: 0.8, scrollTrigger: { trigger: '.developer-trust', start: 'top 78%', once: true } })
     fadeUp('.developer-copy', { x: 35, duration: 0.8, scrollTrigger: { trigger: '.developer-trust', start: 'top 78%', once: true } })
-    fadeUp('.final-cta-copy, .lead-card', { duration: 0.75, stagger: 0.1, scrollTrigger: { trigger: '.final-cta', start: 'top 80%', once: true } })
+    fadeUp('.final-cta-copy, .final-cta .lead-card', { duration: 0.75, stagger: 0.1, scrollTrigger: { trigger: '.final-cta', start: 'top 80%', once: true } })
     fadeIn('.floating-contact-actions a', { x: 15, stagger: 0.08, delay: 0.2 })
     fadeUp('.hero-content > *', { duration: 0.65, stagger: 0.08, delay: 0.2 })
     fadeIn('.site-nav', { y: -16, duration: 0.5 })
