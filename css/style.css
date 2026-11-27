@@ -335,3 +335,24 @@ img[src*="leisure-pool-sunset"]{object-position:50% 62%}
   .enquiry-band-copy>p{font-size:15px}
   .enquiry-band .lead-card{padding:22px 18px 16px}
 }
+
+/* Visible phone number */
+.call-line{display:inline-flex;align-items:center;gap:9px;margin-top:16px;color:var(--ink);font-size:14.5px;text-decoration:none}
+.call-line svg{flex:none;width:30px;height:30px;padding:7px;border-radius:50%;background:#e3efea;color:var(--teal)}
+.call-line strong{color:var(--teal);white-space:nowrap}
+.call-line:hover strong{text-decoration:underline}
+.call-line-light{margin-top:22px;color:#d3e3de}
+.call-line-light svg{background:#ffffff1f;color:var(--yellow)}
+.call-line-light strong{color:#fff}
+.footer-phone{display:inline-flex;align-items:center;gap:9px;margin-top:14px;color:#d3e4e0;font-size:14px;text-decoration:none}
+.footer-phone svg{width:18px;height:18px;color:var(--yellow)}
+.footer-phone strong{color:#fff;white-space:nowrap}
+.footer-phone:hover strong{text-decoration:underline}
+.nav-call-number{white-space:nowrap}
+@media (max-width:800px){
+  .nav-actions .nav-call{width:auto;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 10px 0 6px;font-size:13px;font-weight:800;color:inherit}
+  .nav-actions .nav-call img{flex:0 0 24px;width:24px;height:24px}
+  .hero .call-line{display:flex;justify-content:center;margin-top:14px}
+}
+@media (max-width:374px){.nav-actions .nav-call{padding:0;width:44px;justify-content:center;font-size:0}.nav-actions .nav-call img{flex-basis:27px;width:27px;height:27px}}
+.footer-links a{white-space:nowrap}
