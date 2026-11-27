@@ -160,15 +160,8 @@ function setupLeadCard(card, interest) {
   if (!card) return;
 
   var form = $('form', card);
-  var select = $('select[name="interest"]', form);
-
-  if (interest !== undefined) {
-    select.value = interest;
-
-    if (select.value !== interest) {
-      select.value = '';
-    }
-  }
+  // No visible "Interested in" field: send the context of the button that opened the form.
+  form.dataset.interest = interest || 'Not Sure';
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -181,7 +174,7 @@ function setupLeadCard(card, interest) {
     var name = String(data.get('name') || '').trim();
     var normalizedPhone = String(data.get('phone') || '').trim();
     var email = String(data.get('email') || '').trim();
-    var selectedInterest = String(data.get('interest') || '').trim();
+    var selectedInterest = form.dataset.interest || 'Not Sure';
 
     if (!normalizedPhone) {
       errors.phone = 'Please enter your phone number.';
@@ -199,7 +192,7 @@ function setupLeadCard(card, interest) {
       el.remove();
     });
 
-    ['name', 'phone', 'email', 'interest'].forEach(function (field) {
+    ['name', 'phone', 'email'].forEach(function (field) {
       var input = form.elements[field];
       var label = input.closest('label');
 
@@ -262,33 +255,10 @@ function setupLeadCard(card, interest) {
         );
       }
 
-      // Show success only after API confirms submission.
-      var success = document.createElement('div');
-      success.className = 'lead-success';
-
-      success.innerHTML =
-        ICON.Check +
-        '<span class="section-kicker">ENQUIRY RECEIVED</span>' +
-        '<h3>Thank you</h3>' +
-        '<p>Your enquiry has been received. A property advisor will contact you with the requested project information.</p>' +
-        '<div class="lead-success-actions">' +
-        '<a class="button button-accent" href="' +
-        esc(WHATSAPP_URL) +
-        '">WhatsApp Us</a>' +
-        '<button type="button" class="button button-outline lead-back">Back to Website</button>' +
-        '</div>';
-
-      card.replaceWith(success);
-
-      $('.lead-back', success).addEventListener('click', function () {
-        if (overlay && overlay.contains(success)) {
-          // Inside the enquiry popup: just close it.
-          closeModal();
-        } else {
-          // Inline form at the bottom of the page: return to the top.
-          window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
-        }
-      });
+      // API confirmed the lead: go to the thank-you page (keeps UTM params for ad tracking).
+      try { if (name) sessionStorage.setItem('enquiryName', name); } catch (storageError) {}
+      submitButton.textContent = 'Enquiry Received';
+      window.location.assign('thank-you.html' + window.location.search);
 
     } catch (error) {
       console.error('Sell.Do submission failed:', error);
@@ -498,7 +468,7 @@ function setupLeadCard(card, interest) {
     revealTargets.forEach(function (items) {
       gsap.to(items, { autoAlpha: 1, y: 0, duration: 0.75, ease: 'power2.out', stagger: 0.06, scrollTrigger: { trigger: items[0].closest('.section-pad'), start: 'top 80%', once: true } })
     })
-    $$('.pc-card, .pc-table, .floor-plan-card, .amenity-gallery > *, .connectivity-card, .location-highlight, .gallery-slider, .trust-points > div, .contact-details > div').forEach(function (group) {
+    $$('.pc-card, .pc-table, .floor-plan-card, .amenity-gallery > *, .location-info, .location-highlight, .gallery-slider, .trust-points > div, .contact-details > div').forEach(function (group) {
       fadeUp(group, { scale: group.matches('.floor-plan-card') ? 0.97 : 1, duration: 0.65, scrollTrigger: { trigger: group.parentElement, start: 'top 82%', once: true }, stagger: 0.1 })
     })
     fadeUp('.developer-image-wrap', { x: -35, duration: 0.8, scrollTrigger: { trigger: '.developer-trust', start: 'top 78%', once: true } })
@@ -536,4 +506,35 @@ function setupLeadCard(card, interest) {
     if (document.hidden) clearInterval(timer); else start();
   });
   start();
+})();
+
+// Location: nearby-places tabs (click + arrow/Home/End keys).
+;(function () {
+  var list = document.querySelector('.nearby-tabs');
+  if (!list) return;
+  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+  function select(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      var panel = document.getElementById(t.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+    if (tab.scrollIntoView && list.scrollWidth > list.clientWidth) {
+      tab.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { select(tab, false); });
+    tab.addEventListener('keydown', function (e) {
+      var next = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); select(next, true); }
+    });
+  });
 })();
